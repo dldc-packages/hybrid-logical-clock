@@ -1,81 +1,110 @@
 /**
- * Represents a Hybrid Logical Clock timestamp.
- * It consists of a physical time component (ts), a logical counter (cl),
- * and a unique node identifier (id).
+ * A function that returns the current wall clock time as a number (e.g., milliseconds since epoch).
+ */
+export type GetWallClockTime = () => number;
+
+/**
+ * Represents a Hybrid Logical Clock (HLC) timestamp.
+ *
+ * @remarks
+ * An HLC timestamp consists of:
+ * - `ts`: The physical time component (e.g., milliseconds since epoch).
+ * - `cl`: The logical counter, used to order events with the same physical time.
+ * - `id`: A unique node identifier.
+ *
+ * @example
+ * ```typescript
+ * const timestamp: HLCTimestamp = {
+ *   ts: Date.now(),
+ *   cl: 0,
+ *   id: "node-1",
+ *   toString: () => "2024-06-01T12:00:00.000Z|0|node-1"
+ * };
+ * ```
  */
 export interface HLCTimestamp {
   /**
-   * Physical time (e.g., milliseconds since epoch)
+   * The physical time component of the timestamp.
+   * Typically represented as milliseconds since the Unix epoch.
    */
   readonly ts: number;
 
   /**
-   * Logical counter
+   * The logical counter component of the timestamp.
+   * Used to distinguish events that occur at the same physical time.
    */
   readonly cl: number;
 
   /**
-   * Node ID
+   * The unique identifier for the node that generated this timestamp.
    */
   readonly id: string;
 
   /**
-   * Get a string representation of the timestamp.
-   * Format: ISO8601|logicalCounter|nodeId
+   * Returns a string representation of the timestamp.
+   *
+   * @returns A string in the format: ISO8601|logicalCounter|nodeId
    */
   readonly toString: () => string;
 }
 
 /**
- * An object representing an HLC instance with its operational methods.
+ * Represents an instance of a Hybrid Logical Clock (HLC) with operational methods.
+ *
+ * @remarks
+ * Provides methods to generate and merge HLC timestamps for distributed systems.
  */
 export interface HLCInstance {
   /**
-   * Unique identifier for this clock instance
+   * The unique identifier for this clock instance.
    */
   readonly nodeId: string;
 
   /**
-   * Generates a new timestamp for a send event or a local event.
-   * This is the primary method to advance the clock's time.
-   * @returns The new HLCTimestamp for the event.
+   * Generates a new HLC timestamp for a local or send event.
+   *
+   * @returns The new {@link HLCTimestamp} for the event.
    */
   send: () => HLCTimestamp;
 
   /**
-   * Updates the local clock upon receiving an event with a remote timestamp.
-   * @param remoteTimestamp - The remote HLCTimestamp to merge.
-   * @returns The new HLCTimestamp after merging.
+   * Updates the local clock upon receiving a remote HLC timestamp.
+   *
+   * @param remoteTimestamp - The remote {@link HLCTimestamp} to merge.
+   * @returns The new {@link HLCTimestamp} after merging.
    */
   receive: (remoteTimestamp: HLCTimestamp) => HLCTimestamp;
 
   /**
-   * Minimum timestamp value for this clock instance (nodeId).
+   * The minimum possible timestamp value for this clock instance.
    */
   readonly MIN_TIMESTAMP: HLCTimestamp;
 
   /**
-   * Maximum timestamp value for this clock instance (nodeId).
+   * The maximum possible timestamp value for this clock instance.
    */
   readonly MAX_TIMESTAMP: HLCTimestamp;
 }
 
 /**
- * Options for creating a Hybrid Logical Clock instance.
+ * Options for creating a Hybrid Logical Clock (HLC) instance.
  */
 export interface HLCInstanceOptions {
   /**
-   * Optional unique identifier for the clock instance (defaults to a random UUID)
+   * Optional unique identifier for the clock instance.
+   * If not provided, a random UUID will be generated.
    */
   nodeId?: string;
 
   /**
-   * Function to get the current physical time (defaults to Date.now()).
+   * Optional function to retrieve the current physical time.
+   * Defaults to {@link Date.now}.
    */
-  getWallClockTime?: () => number;
+  getWallClockTime?: GetWallClockTime;
 
   /**
-   * Optional maximum drift in milliseconds (defaults to 5 minutes)
+   * Optional maximum allowed drift in milliseconds.
+   * Defaults to 5 minutes.
    */
   maxDrift?: number;
 }
