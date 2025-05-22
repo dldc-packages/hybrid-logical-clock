@@ -1,6 +1,6 @@
 {
   "name": "@dldc/hybrid-logical-clock",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "exports": "./mod.ts",
   "imports": {
     "@std/expect": "jsr:@std/expect@^1.0.15"
