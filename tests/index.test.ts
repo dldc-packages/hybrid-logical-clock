@@ -134,7 +134,7 @@ Deno.test("HLC: parseHLCTimestamp returns null for invalid input", () => {
   expect(parseHLCTimestamp("2025-05-22T12:34:56.789Z|00000001")).toBeNull();
   // Non-numeric counter
   expect(
-    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node-1")
+    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node-1"),
   ).toBeNull();
   // Invalid date
   expect(parseHLCTimestamp("notadate|00000001|node-1")).toBeNull();
@@ -158,7 +158,7 @@ Deno.test(
     );
     expect(MIN_HLC_TIMESTAMP.ts).toBe(0);
     expect(MAX_HLC_TIMESTAMP.ts).toBeGreaterThan(MIN_HLC_TIMESTAMP.ts);
-  }
+  },
 );
 
 Deno.test("HLC: serializeHLC uses correct format", () => {
@@ -183,7 +183,7 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 2000, cl: 0, id: "remote", toString: () => "" })
     ).toThrow(/Drift detected/);
-  }
+  },
 );
 
 Deno.test(
@@ -197,13 +197,13 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 1000, cl: MAX, id: "remote", toString: () => "" })
     ).toThrow(/Counter overflow/);
-  }
+  },
 );
 
 Deno.test("parseHLCTimestamp returns null for NaN ts or cl", () => {
   expect(parseHLCTimestamp("notadate|00000001|node")).toBeNull();
   expect(
-    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node")
+    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node"),
   ).toBeNull();
 });
 

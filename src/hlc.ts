@@ -11,13 +11,13 @@ import type { HLCInstance, HLCInstanceOptions, HLCTimestamp } from "./types.ts";
 export const MIN_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   0,
   0,
-  `00000000-0000-0000-0000-000000000000`
+  `00000000-0000-0000-0000-000000000000`,
 );
 
 export const MAX_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   MAX_EPOCH,
   MAX_LOGICAL_CLOCK,
-  `ffffffff-ffff-ffff-ffff-ffffffffffff`
+  `ffffffff-ffff-ffff-ffff-ffffffffffff`,
 );
 
 /**
@@ -64,7 +64,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
       return (state = createSafeHLCTimestamp(
         tsNow,
         newPt,
-        Math.max(lLocalLast, lRemote) + 1
+        Math.max(lLocalLast, lRemote) + 1,
       ));
     }
     if (newPt === ptLocalLast) {
@@ -82,18 +82,18 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
   function createSafeHLCTimestamp(
     tsNow: number,
     ts: number,
-    cl: number
+    cl: number,
   ): HLCTimestamp {
     // Check for drift
     if (Math.abs(tsNow - ts) > maxDrift) {
       throw new Error(
-        `Drift detected: local time ${tsNow} is more than ${maxDrift}ms away from remote time ${ts}`
+        `Drift detected: local time ${tsNow} is more than ${maxDrift}ms away from remote time ${ts}`,
       );
     }
     // Check for counter overflow
     if (cl >= MAX_LOGICAL_CLOCK) {
       throw new Error(
-        `Counter overflow: local counter ${cl} has reached its maximum value ${MAX_LOGICAL_CLOCK}`
+        `Counter overflow: local counter ${cl} has reached its maximum value ${MAX_LOGICAL_CLOCK}`,
       );
     }
 
@@ -110,7 +110,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
  */
 export function compareHLCTimestamps(
   t1: HLCTimestamp,
-  t2: HLCTimestamp
+  t2: HLCTimestamp,
 ): number {
   if (t1.ts < t2.ts) return -1;
   if (t1.ts > t2.ts) return 1;

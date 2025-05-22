@@ -44,7 +44,7 @@ Deno.test("parseHLCTimestamp: invalid inputs return null", async (t) => {
           result = null;
         }
         expect(result).toBeNull();
-      }
+      },
     );
   }
 });
