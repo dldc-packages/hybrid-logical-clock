@@ -1,12 +1,16 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@dldc/erreur@^7.1.1": "7.1.1",
     "jsr:@std/assert@^1.0.13": "1.0.13",
     "jsr:@std/expect@^1.0.15": "1.0.16",
     "jsr:@std/internal@^1.0.6": "1.0.7",
     "jsr:@std/internal@^1.0.7": "1.0.7"
   },
   "jsr": {
+    "@dldc/erreur@7.1.1": {
+      "integrity": "9ba954ae0654e4ed003959c77aaa009fdf6c64f60bf4cfec33b134556ab0d6da"
+    },
     "@std/assert@1.0.13": {
       "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
       "dependencies": [
@@ -26,6 +30,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@dldc/erreur@^7.1.1",
       "jsr:@std/expect@^1.0.15"
     ]
   }

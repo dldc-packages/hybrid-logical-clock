@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "exports": "./mod.ts",
   "imports": {
+    "@dldc/erreur": "jsr:@dldc/erreur@^7.1.1",
     "@std/expect": "jsr:@std/expect@^1.0.15"
   },
   "tasks": {
