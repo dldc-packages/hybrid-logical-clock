@@ -13,12 +13,42 @@ import {
 import { createHLCTimestamp } from "./internal.ts";
 import type { HLCInstance, HLCInstanceOptions, HLCTimestamp } from "./types.ts";
 
+/**
+ * The minimum possible Hybrid Logical Clock (HLC) timestamp.
+ *
+ * This constant represents the earliest valid HLC timestamp, with all components
+ * (physical time, logical counter, and node ID) set to their minimum values.
+ *
+ * @remarks
+ * This assumes a node ID using the default UUID format.
+ *
+ * @remarks
+ * Useful as an initial value or lower bound when comparing or initializing HLC timestamps.
+ *
+ * @see {@link HLCTimestamp}
+ * @see {@link createHLCTimestamp}
+ */
 export const MIN_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   0,
   0,
   `00000000-0000-0000-0000-000000000000`,
 );
 
+/**
+ * The maximum possible Hybrid Logical Clock (HLC) timestamp.
+ *
+ * This constant represents the upper bound for HLC timestamps, using the maximum values
+ * for epoch and logical clock, and a UUID with all bits set to `f`.
+ *
+ * @remarks
+ * This assumes a node ID using the default UUID format.
+ *
+ * @remarks
+ * Useful for comparisons, boundary checks, and as a sentinel value in HLC-based systems.
+ *
+ * @see {@link createHLCTimestamp}
+ * @see {@link HLCTimestamp}
+ */
 export const MAX_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   MAX_EPOCH,
   MAX_LOGICAL_CLOCK,
