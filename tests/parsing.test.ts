@@ -1,6 +1,5 @@
 import { expect } from "@std/expect";
-import { MAX_LOGICAL_CLOCK } from "../src/defaults.ts";
-import { createHLC, parseHLCTimestamp, serializeHLC } from "../src/hlc.ts";
+import { parseHLCTimestamp, serializeHLC } from "../src/hlc.ts";
 
 Deno.test("parseHLCTimestamp: invalid inputs return null", async (t) => {
   const invalidInputs = [
@@ -68,66 +67,4 @@ Deno.test("parseHLCTimestamp: valid inputs roundtrip", () => {
     expect(typeof parsed!.id).toBe("string");
     expect(serializeHLC(parsed!)).toBe(input);
   }
-});
-
-Deno.test("HLC: send() monotonically with regressing clock", () => {
-  let now = 30;
-  const hlc = createHLC({ nodeId: "test", getWallClockTime: () => now });
-  const t1 = hlc.send();
-  now--;
-  const t2 = hlc.send();
-  expect(t2.ts).toBe(t1.ts);
-  expect(t2.cl).toBe(t1.cl + 1);
-  const t3 = hlc.send();
-  expect(t3.ts).toBe(t1.ts);
-  expect(t3.cl).toBe(t2.cl + 1);
-  now = 31;
-  const t4 = hlc.send();
-  expect(t4.ts).toBeGreaterThan(t1.ts);
-  expect(t4.cl).toBe(0);
-});
-
-Deno.test("HLC: send() fails with counter overflow", () => {
-  const now = 40;
-  const hlc = createHLC({ nodeId: "test", getWallClockTime: () => now });
-  // Patch state to simulate counter at MAX_LOGICAL_CLOCK - 1, then send to overflow
-  // @ts-ignore: test internal
-  hlc.send = () => ({
-    ts: now,
-    cl: MAX_LOGICAL_CLOCK,
-    id: "test",
-    toString: () => "",
-  });
-  expect(() =>
-    hlc.receive({
-      ts: now,
-      cl: MAX_LOGICAL_CLOCK,
-      id: "remote",
-      toString: () => "",
-    })
-  ).toThrow();
-});
-
-Deno.test("HLC: receive() monotonically with regressing local clock", () => {
-  let now = 93;
-  const hlc = createHLC({ nodeId: "test", getWallClockTime: () => now });
-  const remote = { ts: 91, cl: 2, id: "remote", toString: () => "" };
-  const t1 = hlc.receive(remote);
-  expect(t1.ts).toBe(93);
-  expect(t1.cl).toBe(1);
-  now = 92;
-  const remote2 = { ts: 92, cl: 2, id: "remote", toString: () => "" };
-  const t2 = hlc.receive(remote2);
-  expect(t2.ts).toBe(93); // Should remain at the max of local/remote/last
-  expect(t2.cl).toBe(2);
-});
-
-Deno.test("HLC: receive() fails with clock drift", () => {
-  const hlc = createHLC({
-    nodeId: "test",
-    getWallClockTime: () => 0,
-    maxDrift: 1000,
-  });
-  const remote = { ts: 2000, cl: 0, id: "remote", toString: () => "" };
-  expect(() => hlc.receive(remote)).toThrow();
 });

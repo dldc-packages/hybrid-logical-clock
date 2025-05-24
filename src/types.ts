@@ -107,4 +107,9 @@ export interface HLCInstanceOptions {
    * Defaults to 5 minutes.
    */
   maxDrift?: number;
+
+  /**
+   * Initial timestamp to set the clock to.
+   */
+  initialTimestamp?: HLCTimestamp | string;
 }

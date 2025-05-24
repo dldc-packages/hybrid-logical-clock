@@ -2,7 +2,6 @@ import {
   DEFAULT_CREATE_NODE_ID,
   DEFAULT_MAX_DRIFT,
   DEFAULT_WALL_CLOCK_TIME,
-  LOGICAL_CLOCK_LENGTH,
   MAX_EPOCH,
   MAX_LOGICAL_CLOCK,
 } from "./defaults.ts";
@@ -11,6 +10,7 @@ import {
   throwLogicalCounterOverflow,
   throwTimestampParsingError,
 } from "./erreur.ts";
+import { createHLCTimestamp } from "./internal.ts";
 import type { HLCInstance, HLCInstanceOptions, HLCTimestamp } from "./types.ts";
 
 export const MIN_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
@@ -35,10 +35,18 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
     nodeId = DEFAULT_CREATE_NODE_ID(),
     getWallClockTime = DEFAULT_WALL_CLOCK_TIME,
     maxDrift = DEFAULT_MAX_DRIFT,
+    initialTimestamp,
   } = options;
   // Internal state for the HLC instance, captured by closure.
   // Initialize with current physical time. This ensures state is set to a valid current HLC time.
-  let state: HLCTimestamp = createHLCTimestamp(getWallClockTime(), 0, nodeId);
+  const initialTimestampObj = initialTimestamp
+    ? toHLCTimestamp(initialTimestamp)
+    : null;
+  let state: HLCTimestamp = createHLCTimestamp(
+    initialTimestampObj?.ts ?? getWallClockTime(),
+    initialTimestampObj?.cl ?? 0,
+    nodeId,
+  );
 
   return {
     nodeId,
@@ -57,9 +65,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
   }
 
   function receive(remoteTimestamp: HLCTimestamp | string): HLCTimestamp {
-    const remote = typeof remoteTimestamp === "string"
-      ? parseHLCTimestampStrict(remoteTimestamp)
-      : remoteTimestamp;
+    const remote = toHLCTimestamp(remoteTimestamp);
     const tsNow = getWallClockTime();
     const ptLocalLast = state.ts;
     const lLocalLast = state.cl;
@@ -194,26 +200,20 @@ export function serializeHLC(hlc: HLCTimestamp): string {
   return hlc.toString();
 }
 
-// ---- INTERNAL
-
-function createHLCTimestamp(ts: number, cl: number, id: string): HLCTimestamp {
-  let strCache: string | null = null;
-
-  return {
-    ts,
-    cl,
-    id,
-    toString: () => {
-      if (strCache) {
-        return strCache;
-      }
-      return (strCache = serialize(ts, cl, id));
-    },
-  };
-}
-
-function serialize(ts: number, cl: number, id: string): string {
-  const dateStr = new Date(ts).toISOString();
-  const clStr = cl.toString().padStart(LOGICAL_CLOCK_LENGTH, "0");
-  return `${dateStr}|${clStr}|${id}`;
+/**
+ * Converts the given value to an `HLCTimestamp` object.
+ *
+ * If the input is already an `HLCTimestamp`, it is returned as-is.
+ * If the input is a string, it is parsed into an `HLCTimestamp` using `parseHLCTimestampStrict`.
+ *
+ * @param hlc - The value to convert, either an `HLCTimestamp` object or a string representation.
+ * @returns The corresponding `HLCTimestamp` object.
+ */
+export function toHLCTimestamp(
+  hlc: HLCTimestamp | string,
+): HLCTimestamp {
+  if (typeof hlc === "string") {
+    return parseHLCTimestampStrict(hlc);
+  }
+  return hlc;
 }
