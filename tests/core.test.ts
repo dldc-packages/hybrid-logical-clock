@@ -147,3 +147,21 @@ Deno.test(
     ).toThrow(/Counter overflow/);
   }
 );
+
+Deno.test("HLC: receive() accepts string input", () => {
+  const now = 1000;
+  const hlc = createHLC({ nodeId: "node-1", getWallClockTime: () => now });
+  // Use a string with ts=1000 to avoid drift error
+  const remoteStr = "1970-01-01T00:00:01.000Z|00000003|node-2";
+  // Should parse and merge correctly
+  const t = hlc.receive(remoteStr);
+  expect(t.ts).toBe(1000);
+  expect(t.cl).toBe(4);
+  expect(t.id).toBe("node-1");
+});
+
+Deno.test("HLC: receive() throws on invalid string input", () => {
+  const now = 1000;
+  const hlc = createHLC({ nodeId: "node-1", getWallClockTime: () => now });
+  expect(() => hlc.receive("not-a-valid-hlc-string")).toThrow();
+});

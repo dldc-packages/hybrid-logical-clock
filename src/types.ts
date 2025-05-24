@@ -70,10 +70,10 @@ export interface HLCInstance {
   /**
    * Updates the local clock upon receiving a remote HLC timestamp.
    *
-   * @param remoteTimestamp - The remote {@link HLCTimestamp} to merge.
+   * @param remoteTimestamp - The remote {@link HLCTimestamp} or string to merge.
    * @returns The new {@link HLCTimestamp} after merging.
    */
-  receive: (remoteTimestamp: HLCTimestamp) => HLCTimestamp;
+  receive: (remoteTimestamp: HLCTimestamp | string) => HLCTimestamp;
 
   /**
    * The minimum possible timestamp value for this clock instance.

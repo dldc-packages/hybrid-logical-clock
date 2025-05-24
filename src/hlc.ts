@@ -9,6 +9,7 @@ import {
 import {
   throwClockDriftOverflow,
   throwLogicalCounterOverflow,
+  throwTimestampParsingError,
 } from "./erreur.ts";
 import type { HLCInstance, HLCInstanceOptions, HLCTimestamp } from "./types.ts";
 
@@ -55,12 +56,16 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
     return (state = createSafeHLCTimestamp(tsNow, state.ts, state.cl + 1));
   }
 
-  function receive(remoteTimestamp: HLCTimestamp): HLCTimestamp {
+  function receive(remoteTimestamp: HLCTimestamp | string): HLCTimestamp {
+    const remote =
+      typeof remoteTimestamp === "string"
+        ? parseHLCTimestampStrict(remoteTimestamp)
+        : remoteTimestamp;
     const tsNow = getWallClockTime();
     const ptLocalLast = state.ts;
     const lLocalLast = state.cl;
-    const ptRemote = remoteTimestamp.ts;
-    const lRemote = remoteTimestamp.cl;
+    const ptRemote = remote.ts;
+    const lRemote = remote.cl;
 
     const newPt = Math.max(tsNow, ptLocalLast, ptRemote);
 
@@ -130,15 +135,42 @@ export function compareHLCTimestamps(
  * @returns The parsed HLCTimestamp object, or null if invalid.
  */
 export function parseHLCTimestamp(hlcString: string): HLCTimestamp | null {
-  if (typeof hlcString !== "string") return null;
+  try {
+    return parseHLCTimestampStrict(hlcString);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parses a Hybrid Logical Clock (HLC) timestamp string in strict format.
+ *
+ * The expected format is: `ISO8601|logicalCounter|nodeId`.
+ * - `ISO8601`: A valid ISO8601 date string.
+ * - `logicalCounter`: A non-negative integer representing the logical clock.
+ * - `nodeId`: A non-empty string identifying the node.
+ *
+ * @param hlcString - The HLC timestamp string to parse.
+ * @returns The parsed `HLCTimestamp` object.
+ * @throws Will throw an error if the input string is not in the correct format,
+ *         or if any of the components are invalid.
+ */
+export function parseHLCTimestampStrict(hlcString: string): HLCTimestamp {
   const parts = hlcString.split("|");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3)
+    return throwTimestampParsingError(
+      hlcString,
+      "Invalid format, expected ISO8601|logicalCounter|nodeId"
+    );
   const [dateStr, clStr, id] = parts;
-  if (!id || typeof id !== "string" || id.length < 1) return null;
+  if (!id || typeof id !== "string" || id.length < 1)
+    return throwTimestampParsingError(hlcString, "Invalid nodeId");
   const ts = new Date(dateStr).getTime();
-  if (isNaN(ts) || ts < 0 || ts > MAX_EPOCH) return null;
+  if (isNaN(ts) || ts < 0 || ts > MAX_EPOCH)
+    return throwTimestampParsingError(hlcString, "Invalid timestamp");
   const cl = parseInt(clStr, 10);
-  if (isNaN(cl) || cl < 0 || cl > MAX_LOGICAL_CLOCK) return null;
+  if (isNaN(cl) || cl < 0 || cl > MAX_LOGICAL_CLOCK)
+    return throwTimestampParsingError(hlcString, "Invalid logical counter");
   return createHLCTimestamp(ts, cl, id);
 }
 
