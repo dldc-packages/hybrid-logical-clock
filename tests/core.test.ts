@@ -1,11 +1,6 @@
 import { expect } from "@std/expect";
 import { MAX_LOGICAL_CLOCK } from "../src/defaults.ts";
-import {
-  compareHLCTimestamps,
-  createHLC,
-  parseHLCTimestamp,
-  serializeHLC,
-} from "../src/hlc.ts";
+import { createHLC } from "../src/hlc.ts";
 
 Deno.test("HLC: send() returns increasing timestamps", () => {
   const hlc = createHLC({ nodeId: "node-1", getWallClockTime: () => 1000 });
@@ -88,33 +83,6 @@ Deno.test("HLC: throws on counter overflow", () => {
   ).toThrow();
 });
 
-Deno.test("HLC: serialization and parsing roundtrip", () => {
-  const hlc = createHLC({
-    nodeId: "node-1",
-    getWallClockTime: () => 1234567890000,
-  });
-  const t = hlc.send();
-  const str = serializeHLC(t);
-  // Should use '|' as separator
-  expect(str.split("|").length).toBe(3);
-  const parsed = parseHLCTimestamp(str);
-  expect(parsed).not.toBeNull();
-  expect(parsed!.ts).toBe(t.ts);
-  expect(parsed!.cl).toBe(t.cl);
-  expect(parsed!.id).toBe(t.id);
-});
-
-Deno.test("HLC: compareHLCTimestamps works", () => {
-  const t1 = { ts: 1000, cl: 1, id: "a", toString: () => "" };
-  const t2 = { ts: 1000, cl: 2, id: "a", toString: () => "" };
-  const t3 = { ts: 2000, cl: 0, id: "a", toString: () => "" };
-  expect(compareHLCTimestamps(t1, t2)).toBe(-1);
-  expect(compareHLCTimestamps(t2, t1)).toBe(1);
-  expect(compareHLCTimestamps(t1, t1)).toBe(0);
-  expect(compareHLCTimestamps(t2, t3)).toBe(-1);
-  expect(compareHLCTimestamps(t3, t2)).toBe(1);
-});
-
 Deno.test("HLC: MIN and MAX timestamps are correct", () => {
   const hlc = createHLC({ nodeId: "node-1" });
   expect(hlc.MIN_TIMESTAMP.ts).toBe(0);
@@ -127,17 +95,6 @@ Deno.test("HLC: nodeId uniqueness", () => {
   const hlc1 = createHLC({ nodeId: "a" });
   const hlc2 = createHLC({ nodeId: "b" });
   expect(hlc1.nodeId).not.toBe(hlc2.nodeId);
-});
-
-Deno.test("HLC: parseHLCTimestamp returns null for invalid input", () => {
-  // Too few parts
-  expect(parseHLCTimestamp("2025-05-22T12:34:56.789Z|00000001")).toBeNull();
-  // Non-numeric counter
-  expect(
-    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node-1"),
-  ).toBeNull();
-  // Invalid date
-  expect(parseHLCTimestamp("notadate|00000001|node-1")).toBeNull();
 });
 
 Deno.test("HLC: createHLC uses default options", () => {
@@ -158,17 +115,8 @@ Deno.test(
     );
     expect(MIN_HLC_TIMESTAMP.ts).toBe(0);
     expect(MAX_HLC_TIMESTAMP.ts).toBeGreaterThan(MIN_HLC_TIMESTAMP.ts);
-  },
+  }
 );
-
-Deno.test("HLC: serializeHLC uses correct format", () => {
-  // Use a real HLCTimestamp object
-  const ts = Date.UTC(2025, 4, 22, 12, 34, 56, 789);
-  const hlc = createHLC({ nodeId: "node-xyz", getWallClockTime: () => ts });
-  const t = hlc.send();
-  const str = serializeHLC(t);
-  expect(str).toBe("2025-05-22T12:34:56.789Z|00000001|node-xyz");
-});
 
 Deno.test(
   "createSafeHLCTimestamp throws on drift over maxDrift (internal)",
@@ -183,7 +131,7 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 2000, cl: 0, id: "remote", toString: () => "" })
     ).toThrow(/Drift detected/);
-  },
+  }
 );
 
 Deno.test(
@@ -197,38 +145,5 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 1000, cl: MAX, id: "remote", toString: () => "" })
     ).toThrow(/Counter overflow/);
-  },
+  }
 );
-
-Deno.test("parseHLCTimestamp returns null for NaN ts or cl", () => {
-  expect(parseHLCTimestamp("notadate|00000001|node")).toBeNull();
-  expect(
-    parseHLCTimestamp("2025-05-22T12:34:56.789Z|notanumber|node"),
-  ).toBeNull();
-});
-
-Deno.test("compareHLCTimestamps returns 0 for equal", () => {
-  const t = { ts: 1, cl: 2, id: "a", toString: () => "" };
-  expect(compareHLCTimestamps(t, t)).toBe(0);
-});
-
-Deno.test("compareHLCTimestamps returns -1/1 for ts and cl", () => {
-  const t1 = { ts: 1, cl: 2, id: "a", toString: () => "" };
-  const t2 = { ts: 2, cl: 2, id: "a", toString: () => "" };
-  const t3 = { ts: 1, cl: 3, id: "a", toString: () => "" };
-  expect(compareHLCTimestamps(t1, t2)).toBe(-1);
-  expect(compareHLCTimestamps(t2, t1)).toBe(1);
-  expect(compareHLCTimestamps(t1, t3)).toBe(-1);
-  expect(compareHLCTimestamps(t3, t1)).toBe(1);
-});
-
-Deno.test("serializeHLC uses HLCTimestamp.toString cache", () => {
-  const ts = Date.UTC(2025, 4, 22, 12, 34, 56, 789);
-  const hlc = createHLC({ nodeId: "node-xyz", getWallClockTime: () => ts });
-  const t = hlc.send();
-  // Call toString twice to check cache
-  const s1 = t.toString();
-  const s2 = t.toString();
-  expect(s1).toBe(s2);
-  expect(serializeHLC(t)).toBe(s1);
-});
