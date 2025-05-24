@@ -146,14 +146,18 @@ export function parseHLCTimestamp(hlcString: string): HLCTimestamp | null {
  * Parses a Hybrid Logical Clock (HLC) timestamp string in strict format.
  *
  * The expected format is: `ISO8601|logicalCounter|nodeId`.
- * - `ISO8601`: A valid ISO8601 date string.
- * - `logicalCounter`: A non-negative integer representing the logical clock.
+ * - `ISO8601`: A valid ISO8601 date string (e.g., "2025-05-22T12:34:56.789Z").
+ * - `logicalCounter`: An 8-digit, non-negative integer representing the logical clock (e.g., "00000001").
  * - `nodeId`: A non-empty string identifying the node.
  *
  * @param hlcString - The HLC timestamp string to parse.
  * @returns The parsed `HLCTimestamp` object.
  * @throws Will throw an error if the input string is not in the correct format,
- *         or if any of the components are invalid.
+ *         or if any of the components are invalid (invalid date, logical counter, or nodeId).
+ *
+ * @example
+ * const ts = parseHLCTimestampStrict("2025-05-22T12:34:56.789Z|00000001|node-2");
+ * // ts: { ts: 1747926896789, cl: 1, id: "node-2", toString: ... }
  */
 export function parseHLCTimestampStrict(hlcString: string): HLCTimestamp {
   const parts = hlcString.split("|");
