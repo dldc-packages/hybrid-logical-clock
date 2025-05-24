@@ -98,6 +98,10 @@ Creates a new Hybrid Logical Clock instance.
 - `getWallClockTime?: () => number` — Function to get current time (default:
   `Date.now()`).
 - `maxDrift?: number` — Maximum allowed drift in ms (default: 5 minutes).
+- `initialTimestamp?: HLCTimestamp | string` — (Optional) The initial timestamp
+  to start the clock from. Useful for restoring state or resuming from a
+  persisted timestamp. If a string is provided, it must be a valid HLC timestamp
+  string.
 
 **Returns:** `HLCInstance` object:
 
@@ -185,6 +189,27 @@ const tsA = hlcA.send();
 const tsB = hlcB.receive(tsA);
 
 // Now, tsB > tsA and reflects the causal relationship
+```
+
+## Example: Restoring a Clock
+
+You can restore a clock's state by passing the last timestamp to
+`initialTimestamp` when creating a new HLC instance. This is useful for resuming
+from a persisted state.
+
+```ts
+const hlc = createHLC({ nodeId: "node-1", getWallClockTime: () => 1000 });
+const t1 = hlc.send();
+// t1.toString() === "1970-01-01T00:00:01.000Z|00000001|node-1"
+
+// Restore the clock from the last timestamp
+const restoredHLC = createHLC({
+  nodeId: "node-1",
+  getWallClockTime: () => 1000,
+  initialTimestamp: t1,
+});
+const t2 = restoredHLC.send();
+// t2.toString() === "1970-01-01T00:00:01.000Z|00000002|node-1"
 ```
 
 ## Error Handling

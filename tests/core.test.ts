@@ -178,7 +178,7 @@ Deno.test("can restore a clock by passing last timestamp", () => {
   expect(t2.toString()).toBe("1970-01-01T00:00:01.000Z|00000002|node-1");
 });
 
-Deno.test("restpore should not restore nodeId ", () => {
+Deno.test("restore should not restore nodeId ", () => {
   const hlc = createHLC({ nodeId: "node-1", getWallClockTime: () => 1000 });
   const t1 = hlc.send();
   expect(t1.toString()).toBe("1970-01-01T00:00:01.000Z|00000001|node-1");
