@@ -115,7 +115,7 @@ Deno.test(
     );
     expect(MIN_HLC_TIMESTAMP.ts).toBe(0);
     expect(MAX_HLC_TIMESTAMP.ts).toBeGreaterThan(MIN_HLC_TIMESTAMP.ts);
-  }
+  },
 );
 
 Deno.test(
@@ -131,7 +131,7 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 2000, cl: 0, id: "remote", toString: () => "" })
     ).toThrow(/Drift detected/);
-  }
+  },
 );
 
 Deno.test(
@@ -145,7 +145,7 @@ Deno.test(
     expect(() =>
       hlc.receive({ ts: 1000, cl: MAX, id: "remote", toString: () => "" })
     ).toThrow(/Counter overflow/);
-  }
+  },
 );
 
 Deno.test("HLC: receive() accepts string input", () => {

@@ -14,7 +14,7 @@ Deno.test("Expose error metadata", () => {
         message: "Invalid format, expected ISO8601|logicalCounter|nodeId",
       });
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "invalid-timestamp": Invalid format, expected ISO8601|logicalCounter|nodeId'
+        'Cannot parse timestamp "invalid-timestamp": Invalid format, expected ISO8601|logicalCounter|nodeId',
       );
     }
   }
@@ -29,7 +29,7 @@ Deno.test("Expose error metadata for logical counter error", () => {
       expect(hlcError.input).toBe("2023-05-24T12:00:00Z|not-a-number|node1");
       expect(hlcError.message).toBe("Invalid logical counter");
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "2023-05-24T12:00:00Z|not-a-number|node1": Invalid logical counter'
+        'Cannot parse timestamp "2023-05-24T12:00:00Z|not-a-number|node1": Invalid logical counter',
       );
     }
   }
@@ -44,7 +44,7 @@ Deno.test("Expose error metadata for missing node ID", () => {
       expect(hlcError.input).toBe("2023-05-24T12:00:00Z|1|");
       expect(hlcError.message).toBe("Invalid nodeId");
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "2023-05-24T12:00:00Z|1|": Invalid nodeId'
+        'Cannot parse timestamp "2023-05-24T12:00:00Z|1|": Invalid nodeId',
       );
     }
   }
@@ -59,7 +59,7 @@ Deno.test("Expose error metadata for invalid timestamp (date)", () => {
       expect(hlcError.input).toBe("not-a-date|1|node1");
       expect(hlcError.message).toBe("Invalid timestamp");
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "not-a-date|1|node1": Invalid timestamp'
+        'Cannot parse timestamp "not-a-date|1|node1": Invalid timestamp',
       );
     }
   }
@@ -75,7 +75,7 @@ Deno.test("Expose error metadata for logical counter overflow", () => {
       expect(hlcError.input).toBe("2023-05-24T12:00:00Z|100000000|node1");
       expect(hlcError.message).toBe("Invalid logical counter");
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "2023-05-24T12:00:00Z|100000000|node1": Invalid logical counter'
+        'Cannot parse timestamp "2023-05-24T12:00:00Z|100000000|node1": Invalid logical counter',
       );
     }
   }
@@ -90,7 +90,7 @@ Deno.test("Expose error metadata for negative logical counter", () => {
       expect(hlcError.input).toBe("2023-05-24T12:00:00Z|-1|node1");
       expect(hlcError.message).toBe("Invalid logical counter");
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "2023-05-24T12:00:00Z|-1|node1": Invalid logical counter'
+        'Cannot parse timestamp "2023-05-24T12:00:00Z|-1|node1": Invalid logical counter',
       );
     }
   }
@@ -104,10 +104,10 @@ Deno.test("Expose error metadata for too few parts", () => {
     if (hlcError && hlcError.kind === "TimestampParsingError") {
       expect(hlcError.input).toBe("2023-05-24T12:00:00Z|1");
       expect(hlcError.message).toBe(
-        "Invalid format, expected ISO8601|logicalCounter|nodeId"
+        "Invalid format, expected ISO8601|logicalCounter|nodeId",
       );
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "2023-05-24T12:00:00Z|1": Invalid format, expected ISO8601|logicalCounter|nodeId'
+        'Cannot parse timestamp "2023-05-24T12:00:00Z|1": Invalid format, expected ISO8601|logicalCounter|nodeId',
       );
     }
   }
@@ -121,10 +121,10 @@ Deno.test("Expose error metadata for empty string", () => {
     if (hlcError && hlcError.kind === "TimestampParsingError") {
       expect(hlcError.input).toBe("");
       expect(hlcError.message).toBe(
-        "Invalid format, expected ISO8601|logicalCounter|nodeId"
+        "Invalid format, expected ISO8601|logicalCounter|nodeId",
       );
       expect((error as Error).message).toBe(
-        'Cannot parse timestamp "": Invalid format, expected ISO8601|logicalCounter|nodeId'
+        'Cannot parse timestamp "": Invalid format, expected ISO8601|logicalCounter|nodeId',
       );
     }
   }

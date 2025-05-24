@@ -16,13 +16,13 @@ import type { HLCInstance, HLCInstanceOptions, HLCTimestamp } from "./types.ts";
 export const MIN_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   0,
   0,
-  `00000000-0000-0000-0000-000000000000`
+  `00000000-0000-0000-0000-000000000000`,
 );
 
 export const MAX_HLC_TIMESTAMP: HLCTimestamp = createHLCTimestamp(
   MAX_EPOCH,
   MAX_LOGICAL_CLOCK,
-  `ffffffff-ffff-ffff-ffff-ffffffffffff`
+  `ffffffff-ffff-ffff-ffff-ffffffffffff`,
 );
 
 /**
@@ -57,10 +57,9 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
   }
 
   function receive(remoteTimestamp: HLCTimestamp | string): HLCTimestamp {
-    const remote =
-      typeof remoteTimestamp === "string"
-        ? parseHLCTimestampStrict(remoteTimestamp)
-        : remoteTimestamp;
+    const remote = typeof remoteTimestamp === "string"
+      ? parseHLCTimestampStrict(remoteTimestamp)
+      : remoteTimestamp;
     const tsNow = getWallClockTime();
     const ptLocalLast = state.ts;
     const lLocalLast = state.cl;
@@ -73,7 +72,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
       return (state = createSafeHLCTimestamp(
         tsNow,
         newPt,
-        Math.max(lLocalLast, lRemote) + 1
+        Math.max(lLocalLast, lRemote) + 1,
       ));
     }
     if (newPt === ptLocalLast) {
@@ -91,7 +90,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
   function createSafeHLCTimestamp(
     tsNow: number,
     ts: number,
-    cl: number
+    cl: number,
   ): HLCTimestamp {
     // Check for drift
     const drift = Math.abs(tsNow - ts);
@@ -116,7 +115,7 @@ export function createHLC(options: HLCInstanceOptions = {}): HLCInstance {
  */
 export function compareHLCTimestamps(
   t1: HLCTimestamp,
-  t2: HLCTimestamp
+  t2: HLCTimestamp,
 ): number {
   if (t1.ts < t2.ts) return -1;
   if (t1.ts > t2.ts) return 1;
@@ -161,20 +160,24 @@ export function parseHLCTimestamp(hlcString: string): HLCTimestamp | null {
  */
 export function parseHLCTimestampStrict(hlcString: string): HLCTimestamp {
   const parts = hlcString.split("|");
-  if (parts.length !== 3)
+  if (parts.length !== 3) {
     return throwTimestampParsingError(
       hlcString,
-      "Invalid format, expected ISO8601|logicalCounter|nodeId"
+      "Invalid format, expected ISO8601|logicalCounter|nodeId",
     );
+  }
   const [dateStr, clStr, id] = parts;
-  if (!id || typeof id !== "string" || id.length < 1)
+  if (!id || typeof id !== "string" || id.length < 1) {
     return throwTimestampParsingError(hlcString, "Invalid nodeId");
+  }
   const ts = new Date(dateStr).getTime();
-  if (isNaN(ts) || ts < 0 || ts > MAX_EPOCH)
+  if (isNaN(ts) || ts < 0 || ts > MAX_EPOCH) {
     return throwTimestampParsingError(hlcString, "Invalid timestamp");
+  }
   const cl = parseInt(clStr, 10);
-  if (isNaN(cl) || cl < 0 || cl > MAX_LOGICAL_CLOCK)
+  if (isNaN(cl) || cl < 0 || cl > MAX_LOGICAL_CLOCK) {
     return throwTimestampParsingError(hlcString, "Invalid logical counter");
+  }
   return createHLCTimestamp(ts, cl, id);
 }
 
